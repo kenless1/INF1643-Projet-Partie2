@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 /*
     Auteur: Ken Lessard-Gerber
     Code permanent : LESK26269809
@@ -19,8 +22,6 @@
     découvrant toutes les cases qui ne contiennent pas de mines.
     ******************************************************************************
 */
-#include <stdio.h>
-#include <string.h>
 
 /******************************************************************************
     Fonction : valider_charachtere
@@ -85,23 +86,45 @@ int valider_entier(char message_sollicitation[], int min, int max){
     } while (!est_valide);
     return i; 
 }
+/******************************************************************************
+    Fonction : initialiser_plan_afficher
+*******************************************************************************
+    Description : Initialise le plan du jeux affiché.
+*******************************************************************************
+    Pré-condition : -
+*******************************************************************************
+    Paramètres :
+        - tab_plan_jeux: tableau du plan affiché du jeux contenant des 
+            caracteres.
+        - lignes: Valeur contenant le nombre de ligne du tableau du jeux.
+        - colonnes: Valeur contenant le nombre de colonnes du tableau du jeux.
+        valide.
+*******************************************************************************        
+    Retour : -
+*******************************************************************************
+*/
+void initialiser_plan_afficher(char *tab_plan_jeux,int lignes, int colonnes){    
+    for(int i=0;i<lignes;i++){
+        for(int j=0;j<colonnes;j++){
+            tab_plan_jeux[i*colonnes+j] = 'x';
+        }
+    }
+}
+void afficher(char tab_plan_jeux[][4],int lignes, int colonnes){
+    for(int i=0;i<lignes;i++){
+        for(int j=0;j<colonnes;j++){
+            printf("%c",tab_plan_jeux[i][j]);
+        }
+        printf("\n");
+    }
+}
 
-// Exemple d'utilisation de la fonction
-int main() {
-    /* Test valider_caractere
-    char message[] = "Saisissez un caractere parmi [abcde] : ";
-    char caracteres_valides[] = "abcdert";
-    char message_erreur[] = "Le caractere saisi n'est pas valide.";
-    char c = valider_caractere(message, caracteres_valides, message_erreur);
-    printf("Le caractere saisi est : %c", c);
-    */
-    /* Test valider_entier
-    char message[] = "Entrer un int: ";
-    int min = 0;
-    int max = 100;
-    int i = valider_entier(message,min,max);
-    printf("Entier valider: %d \n",i);
-    */
+int main() {    
+    char tabChar[4][4] = {};    
+    initialiser_plan_afficher((char *)tabChar,4,4);
+    afficher(tabChar,4,4);
+    
+    // --------------------------------------------
     scanf("%c");
     return 0;
 }
