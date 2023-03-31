@@ -6,7 +6,7 @@
     Auteur: Ken Lessard-Gerber
     Code permanent : LESK26269809
     Date de création: 22/03/2023
-    Date de mise à jour: 22/03/2023
+    Date de mise à jour: 31/03/2023
     ******************************************************************************
     But du programme: Le but de ce programme consiste a implémenter un jeux 
     de démineur où le but du joueur est de localiser toutes les mines dans 
@@ -46,7 +46,8 @@ typedef struct{
     Retour : Le nombre aléatoire.
 *******************************************************************************
 */
-void afficher_jeux(char *tab_plan_afficher,int lignes, int colonnes,int nombre_mines){
+void afficher_jeux(char *tab_plan_afficher,int lignes, int colonnes,
+                                                            int nombre_mines){
     int compteur_ligne = 10*colonnes;
     for(int i=1;i<=colonnes;i++){
         printf("       %d ",i);
@@ -89,25 +90,6 @@ void afficher_operation(){
     printf("\n                             M - marquer case mine");
     printf("\n                             ? - marquer case");
     printf("\n                             Q - quitter le jeux\n");
-}
-
-/******************************************************************************
-    Fonction : lecture_char
-*******************************************************************************
-    Description :Permet de lire un caractere en input et renvoyer la valeur.
-*******************************************************************************
-    Pré-condition : -
-*******************************************************************************
-    Paramètres :
-        -.
-*******************************************************************************        
-    Retour : - caracteres: Valeur du caracteres lut.
-*******************************************************************************
-*/
-char lecture_char(){
-    char operation;
-    scanf("%c",&operation);
-    return operation;
 }
 /******************************************************************************
     Fonction : est_mine
@@ -558,61 +540,157 @@ int verifier_etat_partie(int *tab_plan_jeux,Coordonnes cordonnes,
     Retour : 
 *******************************************************************************
 */
-void replacer_case_symbol(char *tab_plan_afficher,char symbol,Coordonnes cordonnes,int lignes,int colonnes){
+void replacer_case_symbol(char *tab_plan_afficher,char symbol,
+                                Coordonnes cordonnes,int lignes,int colonnes){
     cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
     tab_plan_afficher[cordonnes.lignes*colonnes+cordonnes.colonnes] = symbol;
 }
+
 /*
 ******************************************************************************
-    Fonction : 
+    Fonction : traiter_partie_terminer
 *******************************************************************************
-    Description : 
+    Description : Permet de traiter une partie terminer. 
 *******************************************************************************
     Pré-condition : -
 *******************************************************************************
     Paramètres :
-        - 
+        - coup_restant: Valeur contenant le nombre de coup restant dans la 
+        partie.
+*******************************************************************************        
+    Retour : etat: Valeur contenant l'etat de la partie.
+*******************************************************************************
+*/
+int traiter_partie_terminer(int coup_restant,int etat){
+    if(coup_restant == 0){
+        printf("\n Partie terminer - aucune autres case a devoiler !!!. Bravo. \n");
+        etat = -1;
+    }
+    return etat;
+}
+/*
+******************************************************************************
+    Fonction : traiter_opertation_marquage
+*******************************************************************************
+    Description : Permet de traiter l'operation de marquage.
+*******************************************************************************
+    Pré-condition : -
+*******************************************************************************
+    Paramètres :
+        - tab_plan_jeux: Tableau du plan du jeux.
+        - tab_plan_afficher: Tableau du pla afficher.
+        - lignes: Valeur contenant le nombre de lignes.
+        - colonnes: Valeur contenant le nombre de colonnes. 
 *******************************************************************************        
     Retour : 
 *******************************************************************************
 */
-int traiter_opertation(int *tab_plan_jeux ,char *tab_plan_afficher,int lignes, 
+int traiter_opertation_marquage(int *tab_plan_jeux ,char *tab_plan_afficher,
+                                                    int lignes,int colonnes){
+    Coordonnes cordonnes;
+    replacer_case_symbol((char *)tab_plan_afficher,'?',
+                                                    cordonnes,lignes,colonnes);
+    int etat_partie= 0;
+    return etat_partie;
+}
+/*
+******************************************************************************
+    Fonction : traiter_opertation_mines
+*******************************************************************************
+    Description : Permet de traiter l'operation de mines.
+*******************************************************************************
+    Pré-condition : -
+*******************************************************************************
+    Paramètres :
+        - tab_plan_jeux: Tableau du plan du jeux.
+        - tab_plan_afficher: Tableau du pla afficher.
+        - lignes: Valeur contenant le nombre de lignes.
+        - colonnes: Valeur contenant le nombre de colonnes. 
+*******************************************************************************        
+    Retour : 
+*******************************************************************************
+*/
+int traiter_opertation_mines(int *tab_plan_jeux ,char *tab_plan_afficher,
+                                                    int lignes, int colonnes){
+    int etat =0;
+    Coordonnes cordonnes;
+    replacer_case_symbol((char *)tab_plan_afficher,'*',cordonnes,lignes,colonnes);
+    int coup_restant = compter_nombres_coups((char *)tab_plan_afficher,
+                                                            lignes,colonnes);
+    etat = traiter_partie_terminer(coup_restant,etat);
+    return etat;
+}
+/*
+******************************************************************************
+    Fonction : traiter_opertation_devoiler
+*******************************************************************************
+    Description : Permet de traiter l'operation de devoilage.
+*******************************************************************************
+    Pré-condition : -
+*******************************************************************************
+    Paramètres :
+        - tab_plan_jeux: Tableau du plan du jeux.
+        - tab_plan_afficher: Tableau du pla afficher.
+        - lignes: Valeur contenant le nombre de lignes.
+        - colonnes: Valeur contenant le nombre de colonnes. 
+*******************************************************************************        
+    Retour : 
+*******************************************************************************
+*/
+int traiter_opertation_devoiler(int *tab_plan_jeux ,char *tab_plan_afficher,
+                                                    int lignes, int colonnes){
+    Coordonnes cordonnes;
+    int nombre_coup_possible;
+    int etat_partie;
+    cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
+    nombre_coup_possible = jouer_coup((int *)tab_plan_jeux,
+                        (char *)tab_plan_afficher,lignes,colonnes,cordonnes);
+
+    etat_partie = verifier_etat_partie((int *)tab_plan_jeux,cordonnes,
+                                            nombre_coup_possible,colonnes);
+
+    int coup_restant = compter_nombres_coups((char *)tab_plan_afficher,
+                                                            lignes,colonnes);
+
+    etat_partie =  traiter_partie_terminer(coup_restant,etat_partie);
+    return etat_partie;
+}
+/*
+******************************************************************************
+    Fonction : traiter_opertations
+*******************************************************************************
+    Description : Permet de traiter les operations, d,m,? et q
+*******************************************************************************
+    Pré-condition : -
+*******************************************************************************
+    Paramètres :
+        - tab_plan_jeux: Tableau du plan du jeux.
+        - tab_plan_afficher: Tableau du pla afficher.
+        - lignes: Valeur contenant le nombre de lignes.
+        - colonnes: Valeur contenant le nombre de colonnes. 
+*******************************************************************************        
+    Retour : 
+*******************************************************************************
+*/
+int traiter_opertations(int *tab_plan_jeux ,char *tab_plan_afficher,int lignes, 
                                                                 int colonnes){
     int nombre_coup_possible;
     int etat_partie;
     char message[] = "\nVeuillez entrer un choix: ";
     char caracteres_valides[] = "dDmM?qQ";
     char message_erreur[] = "\nVotre choix n'est pas valide !!!\n";
-
     char choix_operation = valider_caractere((char *)message,
                             (char *)caracteres_valides,(char *)message_erreur);
-    Coordonnes cordonnes;
+    
     if(choix_operation == 'd'|| choix_operation == 'D'){
-
-        cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
-        nombre_coup_possible = jouer_coup((int *)tab_plan_jeux,(char *)tab_plan_afficher,lignes,colonnes,cordonnes);
-        etat_partie = verifier_etat_partie((int *)tab_plan_jeux,cordonnes,nombre_coup_possible,colonnes);
-        int coup_restant = compter_nombres_coups((char *)tab_plan_afficher,lignes,colonnes);
-        if(coup_restant == 0){
-            printf("\n Partie terminer - aucune autres case a devoiler !!!. Bravo. \n");
-            etat_partie = -1;
-        }
-
+        etat_partie = traiter_opertation_devoiler((int *)tab_plan_jeux,
+                                    (char *)tab_plan_afficher,lignes,colonnes);
     }else if(choix_operation == 'M'|| choix_operation == 'm'){
-
-        replacer_case_symbol((char *)tab_plan_afficher,'*',cordonnes,lignes,colonnes);
-        etat_partie = 0;
-        int coup_restant = compter_nombres_coups((char *)tab_plan_afficher,lignes,colonnes);
-        if(coup_restant == 0){
-            printf("\n Partie terminer - aucune autres case a devoiler !!!. Bravo. \n");
-            etat_partie = -1;
-        }
-
+        etat_partie = traiter_opertation_mines((int *)tab_plan_jeux ,
+                                    (char *)tab_plan_afficher,lignes, colonnes);
     }else if(choix_operation == '?'){
-
-        replacer_case_symbol((char *)tab_plan_afficher,'?',cordonnes,lignes,colonnes);
-        etat_partie= 0;
-        
+        etat_partie = traiter_opertation_marquage((int *)tab_plan_jeux ,
+                                    (char *)tab_plan_afficher,lignes, colonnes);
     }else{
         etat_partie = 1;
     }
@@ -644,11 +722,10 @@ void jouer_partie(int *tab_plan_jeux,int lignes,int colonnes,int nombre_mines){
     do{
         afficher_jeux((char *)tab_plan_afficher,lignes, colonnes,nombre_mines);
         afficher_operation();
-        possible = traiter_opertation((int *)tab_plan_jeux ,
+        possible = traiter_opertations((int *)tab_plan_jeux ,
                                     (char *)tab_plan_afficher,lignes, colonnes);
     }while(possible == 0);
 }
-
 // ----------------------------------------------------------------------------
 // -------------------------------------MAIN-----------------------------------
 //-----------------------------------------------------------------------------
@@ -657,21 +734,25 @@ int main() {
     int colonnes_max = 15;
     char message_lignes[] = "\nVeuillez entrer le nombre de lignes dans le jeux: ";
     char message_colonnes[] = "\nVeuillez entrer le nombre de colonnes dans le jeux: ";
-    char message_mines[] = "\nVeuillez entrer le nombre de mines, 10% du nombre de case minimum et 80% des cases maximum \n,dans le jeux: ";
+    char message_mines[] = "\nVeuillez entrer le nombre de mines, 10% du nombre de case minimum \n et 80% des cases maximum ,dans le jeux: ";
     int colonnes;
     int lignes;
     int nombre_mines;
+
     // Message de bienvenue.
     printf("\nBienvenue dans mon jeux de demineur.\n");
+
     // Choix du nombre de lignes,colonnes et nombre de mine dans le jeux. 
     lignes = valider_entier((char *)message_lignes, 1, lignes_max);
     colonnes = valider_entier((char *)message_colonnes, 1, colonnes_max);
     int nombre_case = lignes*colonnes;
     nombre_mines = valider_entier((char *)message_mines, nombre_case*0.10, 
                                                         nombre_case*0.80);
-    int tabINT[lignes][colonnes];
+    
     // Lance la partie
+    int tabINT[lignes][colonnes];
     jouer_partie((int *)tabINT,lignes,colonnes,nombre_mines);
+
     // Pause dans le jeux pour empecher la fenetre de fermer. 
     system("pause");
     return 0;
