@@ -203,12 +203,12 @@ char valider_caractere(char message[], char caracteres_valides[],
 int valider_entier(char message_sollicitation[], int min, int max){
     int i;
     int est_valide;
-    char message_erreur[] = "Erreur!!! : Veuillez entrer un entier valide. \n";
+    char message_erreur[] = "\nErreur!!! : Veuillez entrer un entier valide. \n";
     do {
         printf("%s", message_sollicitation);
         if (scanf("%d", &i) == 1 && i >= min && i <= max) {
             est_valide = true;
-            printf("Entier valide. \n");
+            printf("\n Entier valide. \n");
         } else {
             est_valide = false;
             printf("%s\n", message_erreur);
@@ -542,6 +542,28 @@ int verifier_etat_partie(int *tab_plan_jeux,Coordonnes cordonnes,
 
 /*
 ******************************************************************************
+    Fonction : replacer_case_symbol
+*******************************************************************************
+    Description : Permet de remplacer le symbol de la case choisi
+    par le symbol recu en parametre.
+*******************************************************************************
+    Pré-condition : -
+*******************************************************************************
+    Paramètres :
+        - tab_plan_afficher: Plan afficher du jeux.
+        - symbol: Valeur contenant le symbol de remplacement.
+        - lignes: Valeurs contenant le nombre de lignes dans le jeux.
+        - colonnes: Valeur contenant le nombre de colonnes dans le jeux. 
+*******************************************************************************        
+    Retour : 
+*******************************************************************************
+*/
+void replacer_case_symbol(char *tab_plan_afficher,char symbol,Coordonnes cordonnes,int lignes,int colonnes){
+    cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
+    tab_plan_afficher[cordonnes.lignes*colonnes+cordonnes.colonnes] = symbol;
+}
+/*
+******************************************************************************
     Fonction : 
 *******************************************************************************
     Description : 
@@ -554,36 +576,46 @@ int verifier_etat_partie(int *tab_plan_jeux,Coordonnes cordonnes,
     Retour : 
 *******************************************************************************
 */
-int traiter_opertation(int *tab_plan_jeux ,char *tab_plan_afficher,int lignes, int colonnes){
+int traiter_opertation(int *tab_plan_jeux ,char *tab_plan_afficher,int lignes, 
+                                                                int colonnes){
     int nombre_coup_possible;
     int etat_partie;
     char message[] = "\nVeuillez entrer un choix: ";
     char caracteres_valides[] = "dDmM?qQ";
-    char message_erreur[] = "Votre choix n'est pas valide";
+    char message_erreur[] = "\nVotre choix n'est pas valide !!!\n";
 
-    char choix_operation = valider_caractere((char *)message,(char *)caracteres_valides,(char *)message_erreur);
+    char choix_operation = valider_caractere((char *)message,
+                            (char *)caracteres_valides,(char *)message_erreur);
     Coordonnes cordonnes;
     if(choix_operation == 'd'|| choix_operation == 'D'){
-        cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
 
+        cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
         nombre_coup_possible = jouer_coup((int *)tab_plan_jeux,(char *)tab_plan_afficher,lignes,colonnes,cordonnes);
         etat_partie = verifier_etat_partie((int *)tab_plan_jeux,cordonnes,nombre_coup_possible,colonnes);
+        int coup_restant = compter_nombres_coups((char *)tab_plan_afficher,lignes,colonnes);
+        if(coup_restant == 0){
+            printf("\n Partie terminer - aucune autres case a devoiler !!!. Bravo. \n");
+            etat_partie = -1;
+        }
+
     }else if(choix_operation == 'M'|| choix_operation == 'm'){
-        cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
 
-        tab_plan_afficher[cordonnes.lignes*colonnes+cordonnes.colonnes] = '*';
+        replacer_case_symbol((char *)tab_plan_afficher,'*',cordonnes,lignes,colonnes);
         etat_partie = 0;
-    }else if(choix_operation == '?'){
-        cordonnes = valider_coup((char *)tab_plan_afficher,lignes,colonnes);
+        int coup_restant = compter_nombres_coups((char *)tab_plan_afficher,lignes,colonnes);
+        if(coup_restant == 0){
+            printf("\n Partie terminer - aucune autres case a devoiler !!!. Bravo. \n");
+            etat_partie = -1;
+        }
 
-        tab_plan_afficher[cordonnes.lignes*colonnes+cordonnes.colonnes] = '?';
+    }else if(choix_operation == '?'){
+
+        replacer_case_symbol((char *)tab_plan_afficher,'?',cordonnes,lignes,colonnes);
         etat_partie= 0;
+        
     }else{
         etat_partie = 1;
     }
-    
-    
-
     return etat_partie;
 }
 
@@ -592,40 +624,55 @@ int traiter_opertation(int *tab_plan_jeux ,char *tab_plan_afficher,int lignes, i
 ******************************************************************************
     Fonction : jouer_partie
 *******************************************************************************
-    Description : 
+    Description : Permet de jouer une partie de demineur.
 *******************************************************************************
     Pré-condition : -
 *******************************************************************************
     Paramètres :
-        - 
+        -tab_plan_jeux: Plan de jeux.
+        -int lignes: Valeur contenant le nombre de lignes dans le jeux.
+        -int colonnes: Valeur contenant le nombre de colonnes dans le jeux.
 *******************************************************************************        
     Retour : 
 *******************************************************************************
 */
-void jouer_partie(int *tab_plan_jeux,int lignes,int colonnes){
-    int nombre_mines =4;
+void jouer_partie(int *tab_plan_jeux,int lignes,int colonnes,int nombre_mines){
     int tab_plan_afficher[9];
     int possible;
-
     initialiser_plan_afficher((char *)tab_plan_afficher,lignes,colonnes);
-    initialiser_plan_jeux((int *)tab_plan_jeux,nombre_mines,lignes,colonnes);
-                                                
+    initialiser_plan_jeux((int *)tab_plan_jeux,nombre_mines,lignes,colonnes);    
     do{
         afficher_jeux((char *)tab_plan_afficher,lignes, colonnes,nombre_mines);
         afficher_operation();
-        possible = traiter_opertation((int *)tab_plan_jeux ,(char *)tab_plan_afficher,lignes, colonnes);
-    }while(possible ==0);
-
-    afficher_jeux((char *)tab_plan_afficher,lignes, colonnes,nombre_mines);                                        
+        possible = traiter_opertation((int *)tab_plan_jeux ,
+                                    (char *)tab_plan_afficher,lignes, colonnes);
+    }while(possible == 0);
 }
 
 // ----------------------------------------------------------------------------
 // -------------------------------------MAIN-----------------------------------
 //-----------------------------------------------------------------------------
 int main() {    
-    int tabINT[5][5];
-    jouer_partie((int *)tabINT,5,5);
-    
+    int lignes_max = 10;
+    int colonnes_max = 15;
+    char message_lignes[] = "\nVeuillez entrer le nombre de lignes dans le jeux: ";
+    char message_colonnes[] = "\nVeuillez entrer le nombre de colonnes dans le jeux: ";
+    char message_mines[] = "\nVeuillez entrer le nombre de mines, 10% du nombre de case minimum et 80% des cases maximum \n,dans le jeux: ";
+    int colonnes;
+    int lignes;
+    int nombre_mines;
+    // Message de bienvenue.
+    printf("\nBienvenue dans mon jeux de demineur.\n");
+    // Choix du nombre de lignes,colonnes et nombre de mine dans le jeux. 
+    lignes = valider_entier((char *)message_lignes, 1, lignes_max);
+    colonnes = valider_entier((char *)message_colonnes, 1, colonnes_max);
+    int nombre_case = lignes*colonnes;
+    nombre_mines = valider_entier((char *)message_mines, nombre_case*0.10, 
+                                                        nombre_case*0.80);
+    int tabINT[lignes][colonnes];
+    // Lance la partie
+    jouer_partie((int *)tabINT,lignes,colonnes,nombre_mines);
+    // Pause dans le jeux pour empecher la fenetre de fermer. 
     system("pause");
     return 0;
 }
